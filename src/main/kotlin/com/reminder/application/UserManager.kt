@@ -2,6 +2,7 @@ package com.reminder.application
 
 import com.reminder.core.model.user.User
 import com.reminder.core.model.user.UserRepository
+import com.reminder.infrastructure.mysql.NoSuchElementInDbException
 import org.springframework.stereotype.Component
 
 @Component
@@ -9,8 +10,12 @@ class UserManager(
     private val userRepository: UserRepository
 ) {
 
-    fun getUserFromDatabase(email: String, password: String): User {
-        return userRepository.getUser(email, password)
+    fun getUserFromDatabase(email: String, password: String): User? {
+        return try {
+            userRepository.getUser(email, password)
+        } catch (e: NoSuchElementInDbException) {
+            null
+        }
     }
 
     fun createUser(userName: String, email: String, password: String): User {

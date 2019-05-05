@@ -3,6 +3,8 @@ package com.reminder.api
 import com.reminder.api.Routing.Companion.LOGIN_API
 import com.reminder.application.UserManager
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
