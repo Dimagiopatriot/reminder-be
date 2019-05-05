@@ -49,10 +49,9 @@ class SecurityConfig(
     override fun configure(http: HttpSecurity) {
         http
             .csrf().disable()
-            .anonymous().disable()
             .exceptionHandling()
-                .authenticationEntryPoint(unauthorizedHandler)
-                .and()
+            .authenticationEntryPoint(unauthorizedHandler)
+            .and()
             .authorizeRequests()
             .antMatchers("/api-docs/**").permitAll()
             .antMatchers(LOGIN_API).permitAll()

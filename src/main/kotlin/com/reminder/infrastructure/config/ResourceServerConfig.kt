@@ -9,23 +9,25 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.R
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer
 
 
-//@Configuration
-//@EnableResourceServer
-class ResourceServerConfig : ResourceServerConfigurerAdapter() {
+@Configuration
+@EnableResourceServer
+class ResourceServerConfig(
+    val unauthorizedHandler: JwtAuthenticationEntryPoint
+) : ResourceServerConfigurerAdapter() {
 
     override fun configure(resources: ResourceServerSecurityConfigurer?) {
-        resources!!.resourceId(RESOURCE_ID).stateless(false)
+        resources!!.resourceId(RESOURCE_ID).stateless(true)
     }
 
     @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
-        http.anonymous().disable()
+        http
             .authorizeRequests()
             .antMatchers(Routing.LOGIN_API).permitAll()
             .antMatchers(Routing.REGISTER_API).permitAll()
             .antMatchers("/api/**").authenticated()
             //.antMatchers("/**").access("hasRole('USER')")
-            .and().exceptionHandling().accessDeniedHandler(OAuth2AccessDeniedHandler())
+            .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
     }
 
     companion object {
