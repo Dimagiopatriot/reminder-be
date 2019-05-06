@@ -21,6 +21,6 @@ class UserManager(
 
     @Throws(CustomSQLException::class)
     fun createUser(userName: String, email: String, password: String): User {
-        return userRepository.createUser(User(userName, email, password))
+        return userRepository.createUser(userName, email, password)
     }
 }

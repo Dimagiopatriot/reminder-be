@@ -24,15 +24,20 @@ import javax.persistence.Table
 @Repository
 class UserMySqlRepository : UserRepository, UserDetailsService {
 
+    override fun getUserByUserName(userName: String): User {
+        val user = userDaoRepository.findOne(Example.of(UserDao(userName = userName))).get()
+        return User(
+            user.id!!,
+            user.userName!!,
+            user.email!!,
+            Base64Utils.decode(user.password!!).toString(Charsets.UTF_8)
+        )
+    }
+
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username: String?): UserDetails {
-        val user = userDaoRepository.findOne(
-            Example.of(
-                UserDao(
-                    userName = username
-                )
-            )
-        )
+        val user = userDaoRepository.findOne(Example.of(UserDao(userName = username)))
+
         return if (user.isPresent) {
             org.springframework.security.core.userdetails.User(
                 user.get().userName,
@@ -59,22 +64,23 @@ class UserMySqlRepository : UserRepository, UserDetailsService {
         )
         return if (userDao.isPresent) userDao
             .map {
-                User(it.userName!!, it.email!!, Base64Utils.decode(it.password!!).toString(Charsets.UTF_8))
+                User(it.id!!, it.userName!!, it.email!!, Base64Utils.decode(it.password!!).toString(Charsets.UTF_8))
             }
             .get() else throw NoSuchElementInDbException()
     }
 
     @Throws(CustomSQLException::class)
-    override fun createUser(user: User): User {
+    override fun createUser(userName: String, email: String, password: String): User {
         try {
             val userDao = userDaoRepository.save(
                 UserDao(
-                    userName = user.userName,
-                    email = user.email,
-                    password = Base64Utils.encode(user.password.toByteArray())
+                    userName = userName,
+                    email = email,
+                    password = Base64Utils.encode(password.toByteArray())
                 )
             )
             return User(
+                userDao.id!!,
                 userDao.userName!!,
                 userDao.email!!,
                 Base64Utils.decode(userDao.password!!).toString(Charsets.UTF_8)

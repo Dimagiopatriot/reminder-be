@@ -31,7 +31,7 @@ class RegisterController(
         return try {
             val user = userManager.createUser(registerBody.userName, registerBody.email, registerBody.password)
             val authentication =
-                authenticationManager.authenticate(UsernamePasswordAuthenticationToken(user.email, user.password))
+                authenticationManager.authenticate(UsernamePasswordAuthenticationToken(user.userName, user.password))
             SecurityContextHolder.getContext().authentication = authentication
             val jwt = tokenProvider.generateToken((authentication.principal as UserDetails).username)
             ResponseEntity.ok(

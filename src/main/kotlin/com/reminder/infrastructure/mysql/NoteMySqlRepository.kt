@@ -45,15 +45,16 @@ class NoteMySqlRepository : NoteRepository {
                 note.timestamp,
                 note.noteName,
                 note.description,
-                note.status.name
+                note.status.name,
+                userId
             )
         )
         return Note(
-            noteDao.id,
-            noteDao.timestamp!!,
-            noteDao.noteName!!,
-            noteDao.description,
-            Status.valueOf(noteDao.noteName)
+            id = noteDao.id,
+            timestamp = noteDao.timestamp!!,
+            noteName = noteDao.noteName!!,
+            description = noteDao.description,
+            status = Status.valueOf(noteDao.status!!.toUpperCase())
         )
     }
 

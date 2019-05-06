@@ -7,6 +7,11 @@ import com.reminder.application.NoteManager
 import com.reminder.core.model.Status
 import com.reminder.core.model.note.Note
 import org.springframework.http.ResponseEntity
+import org.springframework.http.codec.json.Jackson2JsonDecoder
+import org.springframework.http.codec.json.Jackson2JsonEncoder
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.oauth2.common.util.Jackson2JsonParser
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -16,38 +21,38 @@ class NoteController(
 
     @PatchMapping(UPDATE_NOTE)
     fun doPatch(@RequestBody noteBody: NoteBody): ResponseEntity<String> {
-        //todo add real userId
+        val userName = (SecurityContextHolder.getContext().authentication.principal as UserDetails).username
         noteManager.updateOrCreateNote(
             Note(
                 noteBody.id,
                 noteBody.timestamp,
                 noteBody.noteName,
                 noteBody.description,
-                Status.valueOf(noteBody.status)
+                Status.valueOf(noteBody.status.toUpperCase())
             ),
-            121212
+            userName
         )
-        return ResponseEntity.ok("status: updated")
+        return ResponseEntity.ok("{ \"status\": \"updated\" }")
     }
 
     @DeleteMapping(DELETE_NOTE)
     fun doDelete(@RequestParam id: Long): ResponseEntity<String> {
         noteManager.removeNote(id)
-        return ResponseEntity.ok("status: deleted")
+        return ResponseEntity.ok("{ \"status\": \"deleted\" }")
     }
 
     @PutMapping(CREATE_NOTE)
     fun doPut(@RequestBody noteBody: NoteBody): ResponseEntity<NoteDto> {
-        //todo add real userId
+        val userName = (SecurityContextHolder.getContext().authentication.principal as UserDetails).username
         val note = noteManager.updateOrCreateNote(
             Note(
                 noteBody.id,
                 noteBody.timestamp,
                 noteBody.noteName,
                 noteBody.description,
-                Status.valueOf(noteBody.status)
+                Status.valueOf(noteBody.status.toUpperCase())
             ),
-            121212
+            userName
         )
         return ResponseEntity.ok(NoteDto(note.id!!, note.timestamp, note.noteName, note.description, note.status.name))
     }
