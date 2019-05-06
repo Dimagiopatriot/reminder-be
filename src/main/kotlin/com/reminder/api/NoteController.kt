@@ -6,12 +6,10 @@ import com.reminder.api.Routing.Companion.UPDATE_NOTE
 import com.reminder.application.NoteManager
 import com.reminder.core.model.Status
 import com.reminder.core.model.note.Note
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.http.codec.json.Jackson2JsonDecoder
-import org.springframework.http.codec.json.Jackson2JsonEncoder
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.oauth2.common.util.Jackson2JsonParser
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -19,26 +17,28 @@ class NoteController(
     private val noteManager: NoteManager
 ) {
 
-    @PatchMapping(UPDATE_NOTE)
-    fun doPatch(@RequestBody noteBody: NoteBody): ResponseEntity<String> {
-        val userName = (SecurityContextHolder.getContext().authentication.principal as UserDetails).username
-        noteManager.updateOrCreateNote(
-            Note(
-                noteBody.id,
-                noteBody.timestamp,
-                noteBody.noteName,
-                noteBody.description,
-                Status.valueOf(noteBody.status.toUpperCase())
-            ),
-            userName
-        )
-        return ResponseEntity.ok("{ \"status\": \"updated\" }")
+    @PatchMapping(UPDATE_NOTE, produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun doPatch(@RequestBody noteBody: NoteBody): String {
+        noteBody.id?.let {
+            val userName = (SecurityContextHolder.getContext().authentication.principal as UserDetails).username
+            noteManager.updateOrCreateNote(
+                Note(
+                    noteBody.id,
+                    noteBody.timestamp,
+                    noteBody.noteName,
+                    noteBody.description,
+                    Status.valueOf(noteBody.status.toUpperCase())
+                ),
+                userName
+            )
+            return "{ \"status\": \"updated\" }"
+        } ?: return "{ \"status\": \"failed. No id\" }"
     }
 
-    @DeleteMapping(DELETE_NOTE)
-    fun doDelete(@RequestParam id: Long): ResponseEntity<String> {
+    @DeleteMapping(DELETE_NOTE, produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun doDelete(@RequestParam id: Long): String {
         noteManager.removeNote(id)
-        return ResponseEntity.ok("{ \"status\": \"deleted\" }")
+        return "{ \"status\": \"deleted\" }"
     }
 
     @PutMapping(CREATE_NOTE)

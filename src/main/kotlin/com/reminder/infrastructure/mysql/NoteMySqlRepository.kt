@@ -4,12 +4,18 @@ import com.reminder.core.model.Status
 import com.reminder.core.model.note.Note
 import com.reminder.core.model.note.NoteRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Example
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.io.Serializable
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.*
-import javax.persistence.*
+import javax.persistence.Entity
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+import javax.persistence.Table
 
 @Repository
 class NoteMySqlRepository : NoteRepository {
@@ -18,15 +24,14 @@ class NoteMySqlRepository : NoteRepository {
     private lateinit var noteDaoRepository: NoteDaoRepository
 
     override fun getNotes(date: Date, userId: Long): List<Note> {
-        val notesDto = noteDaoRepository.findAll(
-            Example.of(
-                NoteDao(
-                    timestamp = date.time,
-                    userId = userId
-                )
-            )
-        )
+        val formattedDateString = SimpleDateFormat("yyyy-MM-dd").format(date)
+        val localDateTime = LocalDate.parse(formattedDateString)
+        val startTimestamp = localDateTime.atTime(0, 0, 0, 0)
+            .toInstant(ZoneOffset.UTC).toEpochMilli()
+        val endTimestamp = localDateTime.atTime(23, 59, 59, 0)
+            .toInstant(ZoneOffset.UTC).toEpochMilli()
 
+        val notesDto = noteDaoRepository.findNotesBetweenTimestamps(startTimestamp, endTimestamp, userId)
         return notesDto.map {
             Note(
                 id = it.id,
@@ -65,7 +70,13 @@ class NoteMySqlRepository : NoteRepository {
 }
 
 @Repository
-interface NoteDaoRepository : JpaRepository<NoteDao, Long>
+interface NoteDaoRepository : JpaRepository<NoteDao, Long> {
+    @Query(value = "select * from `note` where timestamp between ?1 and ?2 and user_id = ?3", nativeQuery = true)
+    fun findNotesBetweenTimestamps(startTimestamp: Long,
+                                   endTimestamp: Long,
+                                   userId: Long
+    ): List<NoteDao>
+}
 
 @Table(name = "note")
 @Entity
