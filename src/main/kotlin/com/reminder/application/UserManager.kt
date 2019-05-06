@@ -2,6 +2,7 @@ package com.reminder.application
 
 import com.reminder.core.model.user.User
 import com.reminder.core.model.user.UserRepository
+import com.reminder.infrastructure.mysql.CustomSQLException
 import com.reminder.infrastructure.mysql.NoSuchElementInDbException
 import org.springframework.stereotype.Component
 
@@ -18,6 +19,7 @@ class UserManager(
         }
     }
 
+    @Throws(CustomSQLException::class)
     fun createUser(userName: String, email: String, password: String): User {
         return userRepository.createUser(User(userName, email, password))
     }
